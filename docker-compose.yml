@@ -1,0 +1,43 @@
+# Local stack: `docker compose up -d --wait`, then `curl localhost:8080/readyz`.
+# Credentials here are for local development only.
+name: agent-doorway
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: doorway
+      POSTGRES_PASSWORD: doorway
+      POSTGRES_DB: doorway
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doorway -d doorway"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  gateway:
+    build: .
+    environment:
+      DOORWAY_ENV: dev
+      DOORWAY_DATABASE_URL: postgresql+asyncpg://doorway:doorway@postgres:5432/doorway
+      DOORWAY_REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  pgdata:

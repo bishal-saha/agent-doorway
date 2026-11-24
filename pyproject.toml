@@ -20,10 +20,12 @@ dependencies = [
 doorway = "agent_doorway.cli.main:app"
 [dependency-groups]
 dev = [
+    "anyio>=4.16.0",
     "httpx2>=2.16.2",
     "mypy>=2.4.1",
     "pytest>=8",
     "ruff>=0.17.6",
+    "testcontainers[postgres,redis]>=4.15.0",
 ]
 
 [build-system]
